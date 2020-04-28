@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -11,6 +10,8 @@ User = get_user_model()
 
 
 class GalleryTests(APITestCase):
+    """ Test only gallery apis """
+
     def setUp(self):
         self.user1 = self.create_user("user1", "user1@test.com")
         self.user2 = self.create_user("user2", "user2@test.com")
