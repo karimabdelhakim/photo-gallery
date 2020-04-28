@@ -13,6 +13,8 @@ from gallery.models import Gallery, Photo
 
 
 class GalleryListCreateApiView(generics.ListCreateAPIView):
+    """ Create and list galleries """
+
     queryset = Gallery.objects.all()
     serializer_class = GallerySerializer
     permission_classes = [IsAuthenticated]
@@ -22,24 +24,40 @@ class GalleryListCreateApiView(generics.ListCreateAPIView):
 
 
 class GalleryRetreiveApiView(generics.RetrieveAPIView):
+    """ Get a gallery by id.
+        Any user can view public gallaries.
+        Only the gallery owner can view it if it is private.
+    """
+
     queryset = Gallery.objects.all()
     serializer_class = GallerySerializer
     permission_classes = [IsAuthenticated, CanViewGallery]
 
 
 class GalleryLikeApiView(generics.RetrieveUpdateAPIView):
+    """ Like a gallery given gallery id.
+        Getting the user from the request inside the serializer.
+    """
+
     queryset = Gallery.objects.all()
     serializer_class = GalleryLikeSerializer
     permission_classes = [IsAuthenticated]
 
 
 class PublicGalleryListApiView(generics.ListAPIView):
+    """ List public galleries """
+
     queryset = Gallery.objects.filter(public=True)
     serializer_class = GallerySerializer
     permission_classes = [IsAuthenticated]
 
 
 class PhotoListCreateApiView(generics.ListCreateAPIView):
+    """ List and create photos.
+        Any user can list photos of a public gallary.
+        Only the gallery owner can list its photos if it is private.
+    """
+
     serializer_class = PhotoSerializer
     permission_classes = [IsAuthenticated, CanListGalleryPhotos]
 
@@ -52,12 +70,20 @@ class PhotoListCreateApiView(generics.ListCreateAPIView):
 
 
 class PhotoLikeApiView(generics.RetrieveUpdateAPIView):
+    """ Like photo given photo id.
+        Getting the user from the request inside the serializer.
+    """
+
     queryset = Photo.objects.all()
     serializer_class = PhotoLikeSerializer
     permission_classes = [IsAuthenticated]
 
 
 class TrendingPhotosListApiView(generics.ListAPIView):
+    """ List Trending Photos based on number of likes of the photos from 
+        public galleries only.
+    """
+
     serializer_class = PhotoSerializer
     permission_classes = [IsAuthenticated]
 

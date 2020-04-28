@@ -6,7 +6,7 @@ from .serializers import UserSerializer
 
 class UserCreateApiView(generics.CreateAPIView):
     """
-    API endpoint that allows create user
+    API endpoint that allows user creation
     """
 
     queryset = User.objects.all()
