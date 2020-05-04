@@ -41,7 +41,7 @@ class CanCreateGalleryPhoto(permissions.BasePermission):
     message = "You don't have permission to add a photo to this gallery"
 
     def has_permission(self, request, view):
-        gallery = get_object_or_404(Gallery, pk=view.kwargs.get("gallery_id"))
         if request.method != "POST":
             return True
+        gallery = get_object_or_404(Gallery, pk=view.kwargs.get("gallery_id"))
         return gallery.user == request.user
