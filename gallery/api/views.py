@@ -2,7 +2,11 @@ from django.db.models import Count
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
-from gallery.api.permissions import CanListGalleryPhotos, CanViewGallery
+from gallery.api.permissions import (
+    CanCreateGalleryPhoto,
+    CanListGalleryPhotos,
+    CanViewGallery,
+)
 from gallery.api.serializers import (
     GalleryLikeSerializer,
     GallerySerializer,
@@ -15,7 +19,7 @@ from gallery.models import Gallery, Photo
 class GalleryListCreateApiView(generics.ListCreateAPIView):
     """ Create and list galleries """
 
-    queryset = Gallery.objects.all()
+    queryset = Gallery.objects.annotate(likes_count=Count("likes")).all()
     serializer_class = GallerySerializer
     permission_classes = [IsAuthenticated]
 
@@ -29,7 +33,7 @@ class GalleryRetreiveApiView(generics.RetrieveAPIView):
         Only the gallery owner can view it if it is private.
     """
 
-    queryset = Gallery.objects.all()
+    queryset = Gallery.objects.annotate(likes_count=Count("likes")).all()
     serializer_class = GallerySerializer
     permission_classes = [IsAuthenticated, CanViewGallery]
 
@@ -47,7 +51,7 @@ class GalleryLikeApiView(generics.RetrieveUpdateAPIView):
 class PublicGalleryListApiView(generics.ListAPIView):
     """ List public galleries """
 
-    queryset = Gallery.objects.filter(public=True)
+    queryset = Gallery.objects.annotate(likes_count=Count("likes")).filter(public=True)
     serializer_class = GallerySerializer
     permission_classes = [IsAuthenticated]
 
@@ -59,14 +63,16 @@ class PhotoListCreateApiView(generics.ListCreateAPIView):
     """
 
     serializer_class = PhotoSerializer
-    permission_classes = [IsAuthenticated, CanListGalleryPhotos]
+    permission_classes = [IsAuthenticated, CanListGalleryPhotos, CanCreateGalleryPhoto]
 
     def get_queryset(self):
         """
         list all photos related to a gallery given gallery_id
         """
         gallery_id = self.kwargs["gallery_id"]
-        return Photo.objects.filter(gallery_id=gallery_id)
+        return Photo.objects.annotate(likes_count=Count("likes")).filter(
+            gallery_id=gallery_id
+        )
 
 
 class PhotoLikeApiView(generics.RetrieveUpdateAPIView):

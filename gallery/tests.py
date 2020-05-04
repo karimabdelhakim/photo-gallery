@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -30,11 +31,12 @@ class GalleryTests(APITestCase):
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 2)
+        list = Gallery.objects.annotate(likes_count=Count("likes"))
         self.assertEqual(
-            response.data["results"][0], GallerySerializer(gallery1).data,
+            response.data["results"][0], GallerySerializer(list[0]).data,
         )
         self.assertEqual(
-            response.data["results"][1], GallerySerializer(gallery2).data,
+            response.data["results"][1], GallerySerializer(list[1]).data,
         )
 
     def test_list_galleries_auth_and_perm(self):
@@ -57,12 +59,13 @@ class GalleryTests(APITestCase):
         gallery2 = Gallery.objects.create(
             name="gallery2", user=self.user1, public=False
         )
+        list = Gallery.objects.annotate(likes_count=Count("likes")).filter(public=True)
         self.client.force_login(self.user1)
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(
-            response.data["results"][0], GallerySerializer(gallery1).data,
+            response.data["results"][0], GallerySerializer(list[0]).data,
         )
 
     def test_list_public_galleries_auth_and_perm(self):
@@ -85,18 +88,19 @@ class GalleryTests(APITestCase):
         gallery2 = Gallery.objects.create(
             name="gallery2", user=self.user1, public=False
         )
+        list = Gallery.objects.annotate(likes_count=Count("likes"))
         url1 = reverse("gallery:api_gallery:get_gallery", args=[gallery1.id])
         url2 = reverse("gallery:api_gallery:get_gallery", args=[gallery2.id])
         self.client.force_login(self.user1)
         response = self.client.get(url1, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.data, GallerySerializer(gallery1).data,
+            response.data, GallerySerializer(list.filter(id=gallery1.id).first()).data,
         )
         response = self.client.get(url2, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.data, GallerySerializer(gallery2).data,
+            response.data, GallerySerializer(list.filter(id=gallery2.id).first()).data,
         )
 
     def test_retreive_gallery_auth_and_perm(self):
@@ -111,6 +115,7 @@ class GalleryTests(APITestCase):
         gallery_private = Gallery.objects.create(
             name="gallery2", user=self.user1, public=False
         )
+        list = Gallery.objects.annotate(likes_count=Count("likes"))
         url1 = reverse("gallery:api_gallery:get_gallery", args=[gallery_public.id])
         url2 = reverse("gallery:api_gallery:get_gallery", args=[gallery_private.id])
         # test authentication
@@ -122,7 +127,8 @@ class GalleryTests(APITestCase):
         response = self.client.get(url1, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.data, GallerySerializer(gallery_public).data,
+            response.data,
+            GallerySerializer(list.filter(id=gallery_public.id).first()).data,
         )
         # user2 (not owner) can't access the gallery because it is private
         response = self.client.get(url2, format="json")
