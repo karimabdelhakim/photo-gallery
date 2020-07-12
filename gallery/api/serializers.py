@@ -7,9 +7,11 @@ User = get_user_model()
 
 
 class GallerySerializer(serializers.ModelSerializer):
+    likes_count = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Gallery
-        fields = ["id", "user", "name", "number_of_likes", "public"]
+        fields = ["id", "user", "name", "likes_count", "public"]
         read_only_fields = ["user"]
 
 
@@ -25,16 +27,11 @@ class GalleryLikeSerializer(serializers.ModelSerializer):
 
 
 class PhotoSerializer(serializers.ModelSerializer):
+    likes_count = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Photo
-        fields = ["id", "title", "description", "image", "gallery", "number_of_likes"]
-
-    def validate_gallery(self, value):
-        if value.user != self.context["request"].user:
-            raise serializers.ValidationError(
-                "You don't have permission to add a photo to this gallery"
-            )
-        return value
+        fields = ["id", "title", "description", "image", "gallery", "likes_count"]
 
 
 class PhotoLikeSerializer(serializers.ModelSerializer):

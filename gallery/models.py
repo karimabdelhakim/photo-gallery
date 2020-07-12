@@ -20,7 +20,7 @@ class Gallery(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     # gallery name is optional
     name = models.CharField(max_length=250, null=True, blank=True)
-    public = models.BooleanField(default=True)
+    public = models.BooleanField(default=True, db_index=True)
     likes = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="liked_galleries"
     )
